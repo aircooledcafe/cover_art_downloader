@@ -161,12 +161,13 @@ button, .btn {
   transition: background .15s, border-color .15s;
 }
 button:hover, .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
-button:disabled { opacity: .5; cursor: not-allowed; }
+button:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
 button.secondary {
   background: transparent;
   color: var(--accent);
 }
 button.secondary:hover { background: var(--accent-soft); }
+button.secondary:disabled:hover { background: transparent; }
 
 /* Status */
 .status { margin: 18px 0 0; min-height: 1.5em; color: var(--muted); }
