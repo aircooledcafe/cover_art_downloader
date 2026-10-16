@@ -1,0 +1,518 @@
+/* Cover Art Downloader — hand-written styles, no external frameworks. */
+
+/* ------------------------------------------------------------------------ */
+/* Fonts                                                                    */
+/* ------------------------------------------------------------------------ */
+@font-face {
+  font-family: "3270 Nerd Font";
+  src: url("3270NerdFont-Regular.woff2") format("woff2"),
+       url("3270NerdFont-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Themes                                                                   */
+/*   <html>                        -> System (follows OS light/dark)        */
+/*   <html data-theme="light">     -> Light                                 */
+/*   <html data-theme="dark">      -> Dark                                  */
+/*   <html data-theme="cyberpunk"> -> Cyberpunk terminal                    */
+/* ------------------------------------------------------------------------ */
+:root {
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-size: 16px;
+
+  --bg: #f4f4f7;
+  --panel: #ffffff;
+  --text: #1d1d24;
+  --muted: #6b6b78;
+  --border: #dedee6;
+  --accent: #ba478f;          /* MusicBrainz-ish magenta */
+  --accent-dark: #93336f;
+  --accent-soft: #f6e6f0;
+  --on-accent: #ffffff;       /* text on accent-coloured backgrounds */
+  --error: #d0342c;
+  --header-bg: linear-gradient(135deg, var(--accent), #eb743b);
+  --header-text: #ffffff;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 14px rgba(0, 0, 0, .05);
+  color-scheme: light;
+}
+
+/* Dark: applied when chosen explicitly, or by the OS when on "System". */
+:root[data-theme="dark"] {
+  --bg: #141418;
+  --panel: #1e1e25;
+  --text: #ececf1;
+  --muted: #9a9aa8;
+  --border: #2f2f3a;
+  --accent-soft: #3a2232;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #141418;
+    --panel: #1e1e25;
+    --text: #ececf1;
+    --muted: #9a9aa8;
+    --border: #2f2f3a;
+    --accent-soft: #3a2232;
+    --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+    color-scheme: dark;
+  }
+}
+
+/* Cyberpunk: green-phosphor mainframe terminal (The Matrix / Silo). */
+:root[data-theme="cyberpunk"] {
+  --font-body: "3270 Nerd Font", ui-monospace, Menlo, Consolas, monospace;
+  --font-size: 18px;          /* 3270 is a compact face; bump it for legibility */
+
+  --bg: #010802;
+  --panel: rgba(0, 24, 8, .72);
+  --text: #4dff7c;
+  --muted: #23a64a;
+  --border: #0f5a24;
+  --accent: #39ff6a;
+  --accent-dark: #a6ffbd;
+  --accent-soft: rgba(57, 255, 106, .12);
+  --on-accent: #001a07;
+  --error: #ff3b3b;
+  --header-bg: rgba(0, 12, 4, .9);
+  --header-text: #4dff7c;
+  --glow: 0 0 2px rgba(77, 255, 124, .8), 0 0 10px rgba(77, 255, 124, .35);
+  --radius: 0;
+  --shadow: 0 0 0 1px rgba(57, 255, 106, .06), 0 0 18px rgba(57, 255, 106, .08);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: var(--font-size); }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: var(--accent); }
+
+.container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+main.container { flex: 1; padding-top: 24px; padding-bottom: 40px; }
+.muted { color: var(--muted); font-weight: normal; }
+
+/* Header / footer */
+.site-header {
+  background: var(--header-bg);
+  color: var(--header-text);
+  padding: 26px 0 22px;
+}
+.site-header h1 { margin: 0; font-size: 1.7rem; }
+.brand { color: var(--header-text); text-decoration: none; }
+.tagline { margin: 4px 0 0; opacity: .9; }
+.site-footer { padding: 18px 0; font-size: .875rem; border-top: 1px solid var(--border); }
+
+/* Panels & forms */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+#search-form { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+.field { display: flex; flex-direction: column; flex: 1 1 220px; }
+.field-button { flex: 0 0 auto; }
+label { font-size: .85rem; font-weight: 600; margin-bottom: 4px; color: var(--muted); }
+
+input[type="text"] {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+button, .btn {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: background .15s, border-color .15s;
+}
+button:hover, .btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+}
+button.secondary:hover { background: var(--accent-soft); }
+
+/* Status */
+.status { margin: 18px 0 0; min-height: 1.5em; color: var(--muted); }
+.status.error { color: var(--error); }
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  vertical-align: -2px;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Results */
+.section-head h2 { font-size: 1.2rem; margin: 18px 0 12px; }
+.results { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; grid-template-columns: 1fr; }
+.results > .empty { grid-column: 1 / -1; }
+
+/* Two tiles per row on desktop; single list on mobile. */
+@media (min-width: 768px) {
+  .results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.result {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color .15s, transform .1s, opacity .15s;
+}
+.result:hover, .result:focus { border-color: var(--accent); outline: none; transform: translateY(-1px); }
+.result.no-art { opacity: .6; }
+.result.no-art:hover, .result.no-art:focus { opacity: 1; }
+
+.thumb {
+  flex: 0 0 88px;
+  width: 88px; height: 88px;
+  border-radius: 6px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 1.6rem;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.result-body { flex: 1; min-width: 0; }
+.result-title { font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.result-artist { margin: 0; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag {
+  font-size: .75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  white-space: nowrap;
+}
+.score { font-size: .8rem; color: var(--muted); flex: 0 0 auto; }
+
+/* Artwork-type summary on each result */
+.art-types {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: .75rem;
+}
+.art-types.loading { color: var(--muted); }
+.art-label { color: var(--muted); font-weight: 600; margin-right: 2px; }
+.art-tag {
+  padding: 1px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  white-space: nowrap;
+  font-weight: 600;
+}
+.art-count { font-weight: 400; margin-left: 3px; opacity: .8; }
+.art-none { color: var(--muted); font-style: italic; }
+.spinner.small { width: 10px; height: 10px; border-width: 2px; margin-right: 4px; }
+
+.pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 18px; }
+
+/* Release / artwork view */
+#back-btn { margin-bottom: 16px; }
+.release-info h2 { margin: 0; }
+.release-info p { margin: 2px 0; }
+.release-info .mb-link { font-size: .875rem; }
+
+.type-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+.chip {
+  font-size: .85rem;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 500;
+}
+.chip:hover { background: var(--accent-soft); border-color: var(--accent); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.art-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+}
+
+.art-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.art-card .preview {
+  aspect-ratio: 1 / 1;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.art-card .preview img { width: 100%; height: 100%; object-fit: contain; }
+.art-card .info { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.art-card .types { display: flex; flex-wrap: wrap; gap: 6px; }
+.art-card .comment { font-size: .85rem; color: var(--muted); margin: 0; }
+.art-card .downloads { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+.art-card .downloads .btn { font-size: .8rem; padding: 6px 10px; }
+.art-card .downloads .btn.alt {
+  background: transparent;
+  color: var(--accent);
+}
+.art-card .downloads .btn.alt:hover { background: var(--accent-soft); }
+.downloads-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--panel);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+
+[hidden] { display: none !important; }
+
+@media (max-width: 560px) {
+  .score { display: none; }
+  .site-header h1 { font-size: 1.35rem; }
+}
+
+/* ======================================================================== */
+/* Theming                                                                  */
+/* ======================================================================== */
+
+/* ---------- Theme picker (in the header) ---------- */
+.site-header .container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+}
+.theme-switcher { display: flex; align-items: center; gap: 8px; }
+.theme-switcher label {
+  margin: 0;
+  color: var(--header-text);
+  opacity: .9;
+  font-size: .85rem;
+  font-weight: 600;
+}
+.theme-switcher select {
+  font: inherit;
+  font-size: .9rem;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .55);
+  background: rgba(255, 255, 255, .16);
+  color: var(--header-text);
+  cursor: pointer;
+}
+.theme-switcher select:focus-visible { outline: 2px solid var(--header-text); outline-offset: 2px; }
+.theme-switcher option { color: var(--text); background: var(--panel); }
+
+/* ======================================================================== */
+/* Cyberpunk theme: green-phosphor terminal (The Matrix / Silo)             */
+/* ======================================================================== */
+
+/* 3270 has no bold or italic, so stop browsers faking them (it smears). */
+:root[data-theme="cyberpunk"] { font-synthesis: none; }
+
+[data-theme="cyberpunk"] body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(0, 80, 28, .35) 0%, transparent 65%),
+    var(--bg);
+  text-shadow: 0 0 4px rgba(77, 255, 124, .45);
+  letter-spacing: .02em;
+}
+
+/* Square everything off; it's a terminal. */
+[data-theme="cyberpunk"] *,
+[data-theme="cyberpunk"] *::before,
+[data-theme="cyberpunk"] *::after { border-radius: 0 !important; }
+
+/* CRT scanlines and vignette, laid over the page (clicks pass through). */
+[data-theme="cyberpunk"] body::before,
+[data-theme="cyberpunk"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+[data-theme="cyberpunk"] body::before {
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, .65) 100%);
+}
+[data-theme="cyberpunk"] body::after {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, .22) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  animation: crt-flicker 6s infinite steps(1);
+}
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  47%      { opacity: .85; }
+  48%      { opacity: 1; }
+  82%      { opacity: .92; }
+  83%      { opacity: 1; }
+}
+
+[data-theme="cyberpunk"] ::selection { background: var(--accent); color: var(--on-accent); text-shadow: none; }
+:root[data-theme="cyberpunk"] { scrollbar-color: var(--border) var(--bg); }
+
+/* Header: a terminal prompt with a blinking block cursor. */
+[data-theme="cyberpunk"] .site-header {
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 24px rgba(57, 255, 106, .12);
+}
+[data-theme="cyberpunk"] .site-header h1 { text-shadow: var(--glow); text-transform: uppercase; letter-spacing: .06em; }
+[data-theme="cyberpunk"] .brand::before { content: "> "; color: var(--muted); }
+[data-theme="cyberpunk"] .brand::after {
+  content: "\2588";           /* █ */
+  margin-left: .15em;
+  animation: cursor-blink 1.05s infinite steps(1);
+}
+@keyframes cursor-blink { 50% { opacity: 0; } }
+[data-theme="cyberpunk"] .tagline {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: .8rem;
+  opacity: 1;
+}
+[data-theme="cyberpunk"] .site-footer { border-top-color: var(--border); }
+
+/* Panels / cards */
+[data-theme="cyberpunk"] .panel,
+[data-theme="cyberpunk"] .result,
+[data-theme="cyberpunk"] .art-card,
+[data-theme="cyberpunk"] .empty {
+  border-color: var(--border);
+  backdrop-filter: blur(1px);
+}
+[data-theme="cyberpunk"] .result:hover,
+[data-theme="cyberpunk"] .result:focus,
+[data-theme="cyberpunk"] .art-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px rgba(57, 255, 106, .25);
+  transform: none;
+}
+[data-theme="cyberpunk"] .thumb,
+[data-theme="cyberpunk"] .art-card .preview { background: #000; border: 1px solid var(--border); }
+[data-theme="cyberpunk"] .art-card .preview { border-width: 0 0 1px; }
+
+/* Headings & labels */
+[data-theme="cyberpunk"] .section-head h2,
+[data-theme="cyberpunk"] .release-info h2 { text-transform: uppercase; letter-spacing: .06em; text-shadow: var(--glow); }
+[data-theme="cyberpunk"] .section-head h2::before,
+[data-theme="cyberpunk"] .release-info h2::before { content: "// "; color: var(--muted); }
+[data-theme="cyberpunk"] label,
+[data-theme="cyberpunk"] .downloads-label,
+[data-theme="cyberpunk"] .art-label { text-transform: uppercase; letter-spacing: .1em; }
+
+/* Inputs */
+[data-theme="cyberpunk"] input[type="text"] {
+  background: #000;
+  border-color: var(--border);
+  color: var(--text);
+  caret-color: var(--accent);
+  text-shadow: inherit;
+}
+[data-theme="cyberpunk"] input[type="text"]::placeholder { color: var(--muted); opacity: .7; }
+[data-theme="cyberpunk"] input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 14px rgba(57, 255, 106, .3);
+}
+
+/* Buttons: filled buttons are inverse video, others are outlined. */
+[data-theme="cyberpunk"] button,
+[data-theme="cyberpunk"] .btn { text-transform: uppercase; letter-spacing: .08em; }
+[data-theme="cyberpunk"] button:not(.secondary):not(.chip),
+[data-theme="cyberpunk"] .btn:not(.alt) { text-shadow: none; box-shadow: 0 0 12px rgba(57, 255, 106, .35); }
+[data-theme="cyberpunk"] button:hover,
+[data-theme="cyberpunk"] .btn:hover { color: var(--on-accent); text-shadow: none; }
+[data-theme="cyberpunk"] button.secondary:hover,
+[data-theme="cyberpunk"] .art-card .downloads .btn.alt:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+[data-theme="cyberpunk"] button.secondary:disabled:hover { background: transparent; color: var(--accent); }
+
+/* Tags / chips */
+[data-theme="cyberpunk"] .tag { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+[data-theme="cyberpunk"] .art-tag { box-shadow: 0 0 6px rgba(57, 255, 106, .25); }
+[data-theme="cyberpunk"] .chip:not(.active) { background: transparent; border-color: var(--border); color: var(--text); }
+[data-theme="cyberpunk"] .chip:not(.active):hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); text-shadow: none; }
+[data-theme="cyberpunk"] .chip.active { text-shadow: none; }
+[data-theme="cyberpunk"] .art-types { border-top-color: var(--border); }
+
+/* Spinner becomes a rotating block */
+[data-theme="cyberpunk"] .spinner { border-color: var(--border); border-top-color: var(--accent); }
+
+/* Theme picker */
+[data-theme="cyberpunk"] .theme-switcher label { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+[data-theme="cyberpunk"] .theme-switcher select {
+  background: #000;
+  border-color: var(--border);
+  color: var(--text);
+  text-shadow: inherit;
+}
+[data-theme="cyberpunk"] .theme-switcher select:hover { border-color: var(--accent); }
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="cyberpunk"] body::after,
+  [data-theme="cyberpunk"] .brand::after { animation: none; }
+}

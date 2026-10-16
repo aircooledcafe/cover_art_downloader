@@ -1,0 +1,4 @@
+cover_art_downloader_venv/
+__pycache__/
+*.pyc
+.DS_Store
