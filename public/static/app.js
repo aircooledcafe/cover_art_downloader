@@ -24,7 +24,17 @@
     artGrid: $("art-grid"),
   };
 
-  const state = { album: "", artist: "", offset: 0, count: 0, images: [], release: null, filter: "All" };
+  const state = {
+    album: "",
+    artist: "",
+    offset: 0,
+    count: 0,
+    atEnd: true,
+    searching: false,
+    images: [],
+    release: null,
+    filter: "All",
+  };
 
   // ---------- helpers ----------
   function el(tag, attrs, ...children) {
@@ -61,33 +71,57 @@
     return el("span", { "aria-hidden": "true" }, "♪");
   }
 
+  function updatePager() {
+    const pages = Math.max(1, Math.ceil(state.count / PAGE_SIZE));
+    const page = Math.min(pages, Math.floor(state.offset / PAGE_SIZE) + 1);
+    els.pageInfo.textContent = `Page ${page.toLocaleString()} of ${pages.toLocaleString()}`;
+    els.prev.disabled = state.searching || state.offset <= 0;
+    els.next.disabled = state.searching || state.atEnd || state.offset + PAGE_SIZE >= state.count;
+  }
+
   // ---------- search ----------
   async function search(offset) {
-    state.offset = offset;
+    if (state.searching) return;
+    offset = Math.max(0, offset);
+    if (offset > 0 && (state.atEnd || offset >= state.count)) {
+      updatePager();
+      return;
+    }
+
     const params = new URLSearchParams({ limit: PAGE_SIZE, offset });
     if (state.album) params.set("album", state.album);
     if (state.artist) params.set("artist", state.artist);
 
+    state.searching = true;
     els.searchBtn.disabled = true;
+    els.prev.disabled = true;
+    els.next.disabled = true;
     showView("results");
     setStatus("Searching MusicBrainz…", { loading: true });
     try {
       const data = await getJSON(`/api/search?${params}`);
-      state.count = data.count;
-      renderResults(data.releases);
+      const releases = data.releases || [];
+      state.offset = offset;
+      state.count = data.count || 0;
+      state.atEnd =
+        state.offset + PAGE_SIZE >= state.count ||
+        releases.length < PAGE_SIZE;
+      renderResults(releases);
       setStatus("");
     } catch (err) {
       els.resultsSection.hidden = true;
       setStatus(err.message, { error: true });
     } finally {
+      state.searching = false;
       els.searchBtn.disabled = false;
+      updatePager();
     }
   }
 
   // Aborts outstanding art-type lookups when the results list is replaced.
   let artTypesController = null;
 
-  async function loadArtTypes(mbid, item, row) {
+  async function loadArtTypes(mbid, item, row, onSettled) {
     const signal = artTypesController.signal;
     try {
       const res = await fetch(`/api/release/${encodeURIComponent(mbid)}/art-types`, {
@@ -99,8 +133,7 @@
 
       row.classList.remove("loading");
       if (!data.has_art) {
-        item.classList.add("no-art");
-        row.replaceChildren(el("span", { class: "art-none" }, "No artwork available"));
+        item.remove();
         return;
       }
       row.replaceChildren(
@@ -114,6 +147,8 @@
       if (err.name === "AbortError") return;
       row.classList.remove("loading");
       row.replaceChildren(el("span", { class: "art-none" }, "Couldn't check artwork"));
+    } finally {
+      if (!signal.aborted && onSettled) onSettled();
     }
   }
 
@@ -126,7 +161,19 @@
 
     if (!releases.length) {
       els.results.append(el("li", { class: "empty" }, "No releases matched your search."));
+      updatePager();
+      return;
     }
+
+    let pending = releases.length;
+    const handleSettled = () => {
+      pending -= 1;
+      if (pending <= 0 && els.results.children.length === 0) {
+        els.results.append(
+          el("li", { class: "empty" }, "No releases with artwork found on this page.")
+        );
+      }
+    };
 
     for (const r of releases) {
       const thumb = el("div", { class: "thumb" });
@@ -169,14 +216,10 @@
         r.score != null ? el("span", { class: "score", title: "Search relevance" }, `${r.score}%`) : null
       );
       els.results.append(item);
-      loadArtTypes(r.id, item, artRow);
+      loadArtTypes(r.id, item, artRow, handleSettled);
     }
 
-    const page = Math.floor(state.offset / PAGE_SIZE) + 1;
-    const pages = Math.max(1, Math.ceil(state.count / PAGE_SIZE));
-    els.pageInfo.textContent = `Page ${page} of ${pages.toLocaleString()}`;
-    els.prev.disabled = state.offset === 0;
-    els.next.disabled = state.offset + PAGE_SIZE >= state.count;
+    updatePager();
   }
 
   // ---------- release / artwork ----------
@@ -279,17 +322,27 @@
   // ---------- events ----------
   els.form.addEventListener("submit", (e) => {
     e.preventDefault();
+    if (state.searching) return;
     state.album = els.album.value.trim();
     state.artist = els.artist.value.trim();
     if (!state.album && !state.artist) {
       setStatus("Enter an album and/or artist to search.", { error: true });
       return;
     }
+    state.offset = 0;
+    state.count = 0;
+    state.atEnd = false;
     els.results.replaceChildren();
     search(0);
   });
 
-  els.prev.addEventListener("click", () => search(Math.max(0, state.offset - PAGE_SIZE)));
-  els.next.addEventListener("click", () => search(state.offset + PAGE_SIZE));
+  els.prev.addEventListener("click", () => {
+    if (state.searching || state.offset <= 0) return;
+    search(Math.max(0, state.offset - PAGE_SIZE));
+  });
+  els.next.addEventListener("click", () => {
+    if (state.searching || state.atEnd || state.offset + PAGE_SIZE >= state.count) return;
+    search(state.offset + PAGE_SIZE);
+  });
   els.back.addEventListener("click", () => { setStatus(""); showView("results"); });
 })();
