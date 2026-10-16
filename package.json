@@ -4,7 +4,7 @@
   "private": true,
   "description": "Search MusicBrainz releases and download album artwork from the Cover Art Archive.",
   "scripts": {
-    "build": "mkdir -p public/static && cp templates/index.html public/index.html && cp -R static/. public/static/",
+    "build": "echo 'Static assets ready in public/'",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
   },
