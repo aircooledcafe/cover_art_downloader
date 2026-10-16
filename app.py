@@ -38,7 +38,12 @@ ALLOWED_DOWNLOAD_HOSTS = ("coverartarchive.org", "archive.org")
 
 MBID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder="public/static",
+    static_url_path="/static",
+    template_folder="public",
+)
 
 session = requests.Session()
 session.headers.update({"User-Agent": USER_AGENT, "Accept": "application/json"})
