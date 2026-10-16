@@ -83,7 +83,7 @@
   async function search(offset) {
     if (state.searching) return;
     offset = Math.max(0, offset);
-    if (offset > 0 && (state.atEnd || offset >= state.count)) {
+    if (offset > 0 && ((offset > state.offset && state.atEnd) || offset >= state.count)) {
       updatePager();
       return;
     }
