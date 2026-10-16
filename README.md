@@ -8,7 +8,7 @@ A Flask web app for searching [MusicBrainz](https://musicbrainz.org/doc/MusicBra
 
 All API calls use JSON (`fmt=json`). The UI uses only plain HTML, CSS and JavaScript, with no external CSS frameworks.
 
-## Setup
+## Local Setup (Flask)
 
 ```bash
 python3 -m venv cover_art_downloader_venv
@@ -20,6 +20,18 @@ python app.py
 Then open http://127.0.0.1:5001.
 
 Set `PORT` to use a different port. MusicBrainz asks clients to send a User-Agent that identifies them, so set `COVER_ART_USER_AGENT` to something like `MyCoverApp/1.0 ( you@example.com )`.
+
+## Deploying to Cloudflare Workers (via GitHub)
+
+The project includes a native Cloudflare Python Worker ([`src/entry.py`](src/entry.py)) and static assets in `public/` configured via [`wrangler.toml`](wrangler.toml) and [`pyproject.toml`](pyproject.toml).
+
+1. Commit and push the repository to GitHub (`main` branch).
+2. In the [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** → **Create application** → **Import a repository** (GitHub) and select `cover_art_downloader`.
+3. Keep the default settings:
+   - **Project name:** `cover-art-downloader` (must match `name` in [`wrangler.toml`](wrangler.toml))
+   - **Build command:** *(leave empty)*
+   - **Deploy command:** `npx wrangler deploy` (or `uv run pywrangler deploy`)
+4. Click **Save and Deploy**. Cloudflare will automatically build and deploy on every push to `main`.
 
 ## JSON API
 

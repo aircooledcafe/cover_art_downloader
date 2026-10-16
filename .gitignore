@@ -1,4 +1,9 @@
 cover_art_downloader_venv/
+.venv/
 __pycache__/
 *.pyc
 .DS_Store
+CONVERSATION_HISTORY.md
+.wrangler/
+node_modules/
+python_modules/

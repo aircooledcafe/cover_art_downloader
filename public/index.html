@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cover Art Downloader</title>
+  <script>
+    /* Apply the saved theme before first paint to avoid a flash of the wrong theme. */
+    (function () {
+      try {
+        var t = localStorage.getItem("caa-theme");
+        if (t === "light" || t === "dark" || t === "cyberpunk") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) { /* storage unavailable: fall back to System */ }
+    })();
+  </script>
+  <link rel="preload" href="/static/3270NerdFont-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="header-titles">
+        <h1><a href="/" class="brand">Cover Art Downloader</a></h1>
+        <p class="tagline">Search MusicBrainz and download artwork from the Cover Art Archive</p>
+      </div>
+      <div class="theme-switcher">
+        <label for="theme-select">Theme</label>
+        <select id="theme-select">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="cyberpunk">Cyberpunk</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Search -->
+    <section id="search-section" class="panel">
+      <form id="search-form" autocomplete="off">
+        <div class="field">
+          <label for="album">Album</label>
+          <input type="text" id="album" name="album" placeholder="e.g. Fear Inoculum">
+        </div>
+        <div class="field">
+          <label for="artist">Artist</label>
+          <input type="text" id="artist" name="artist" placeholder="e.g. Tool">
+        </div>
+        <div class="field field-button">
+          <button type="submit" id="search-btn">Search</button>
+        </div>
+      </form>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <!-- Results -->
+    <section id="results-section" hidden>
+      <div class="section-head">
+        <h2>Results <span id="results-count" class="muted"></span></h2>
+      </div>
+      <ul id="results" class="results"></ul>
+      <div class="pager">
+        <button type="button" id="prev-btn" class="secondary">&larr; Previous</button>
+        <span id="page-info" class="muted"></span>
+        <button type="button" id="next-btn" class="secondary">Next &rarr;</button>
+      </div>
+    </section>
+
+    <!-- Artwork for selected release -->
+    <section id="art-section" hidden>
+      <button type="button" id="back-btn" class="secondary">&larr; Back to results</button>
+      <div id="release-info" class="release-info"></div>
+      <div id="type-filter" class="type-filter"></div>
+      <div id="art-grid" class="art-grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container muted">
+      Data from <a href="https://musicbrainz.org" target="_blank" rel="noopener">MusicBrainz</a>
+      and the <a href="https://coverartarchive.org" target="_blank" rel="noopener">Cover Art Archive</a>.
+      Source <a href="https://github.com/aircooledcafe/cover_art_downloader" target="_blank" rel="noopener">@aircooledcafe GitHub</a>.
+    </div>
+  </footer>
+
+  <script src="/static/theme.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
